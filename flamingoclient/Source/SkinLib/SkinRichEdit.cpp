@@ -7,6 +7,12 @@
 #include "imm.h"
 #endif
 
+#ifndef _WIN64
+#pragma comment(lib, "RichEd20.Lib")
+#else
+#include <TextServ.h>
+#endif
+
 #define ibPed 0
 
 LONG CTxtWinHost::_xWidthSys = 0;			// Average char width of system font
@@ -40,6 +46,13 @@ EXTERN_C const IID IID_ITextServices = { // 8d33f740-cf58-11ce-a89d-00aa006cadc5
 	0xcf58,
 	0x11ce,
 	{0xa8, 0x9d, 0x00, 0xaa, 0x00, 0x6c, 0xad, 0xc5}
+};
+
+EXTERN_C const IID IID_ITextHost = { // 8d33f740-cf58-11ce-a89d-00aa006cadc5
+	0x8d33f740,
+	0xcf58,
+	0x11ce,
+	{ 0xa8, 0x9d, 0x00, 0xaa, 0x00, 0x6c, 0xad, 0xc5 }
 };
 
 
@@ -320,10 +333,12 @@ BOOL CTxtWinHost::Init(
 	// so we can initalize the inset.
 	SetDefaultInset();
 
+#ifndef _WIN64
 	// Create Text Services component
 	if(FAILED(CreateTextServices(NULL, this, &pUnk)))
 		return FALSE;
-    /*typedef HRESULT(_stdcall*CTSFunc)(IUnknown*punkOuter, ITextHost*pITextHost, IUnknown**ppUnk);
+#else
+    typedef HRESULT(_stdcall*CTSFunc)(IUnknown*punkOuter, ITextHost*pITextHost, IUnknown**ppUnk);
     CTSFunc ctsFunc = NULL;
     auto hRiched20 = LoadLibrary(_T("Riched20.dll"));
 
@@ -340,7 +355,8 @@ BOOL CTxtWinHost::Init(
     if (FAILED(ctsFunc(NULL, this, &pUnk)))
     return FALSE;
 
-    FreeLibrary(hRiched20);*/
+    FreeLibrary(hRiched20);
+#endif
 
 	// Get text services interface
 	hr = pUnk->QueryInterface(IID_ITextServices, (void**)&_pserv);
@@ -485,6 +501,7 @@ LRESULT CTxtWinHost::OnCreate(
 
 HRESULT CTxtWinHost::QueryInterface(REFIID riid, void**ppv)
 { 
+#ifdef _WIN64
   	if( IsEqualIID(riid, IID_IUnknown) )
 	{
 		*ppv = (IUnknown*)this;
@@ -497,6 +514,37 @@ HRESULT CTxtWinHost::QueryInterface(REFIID riid, void**ppv)
 	{
 		*ppv = NULL;
 	}
+#else
+	if (IsEqualIID(riid, IID_IUnknown))
+	{
+		*ppv = (IUnknown*)this;
+	}
+	else if (IsEqualIID(riid, IID_ITextHost))
+	{
+		*ppv = (ITextHost*)this;
+	}
+	else
+	{
+		*ppv = NULL;
+	}
+	//typedef HRESULT(_stdcall *CTSFunc)(IUnknown *punkOuter, ITextHost *pITextHost, IUnknown **ppUnk);
+	//CTSFunc ctsFunc = NULL;
+	//auto hRiched20 = LoadLibrary(_T("Riched20.dll"));
+
+	//if (NULL == hRiched20)
+	//	return E_NOINTERFACE;
+	//else
+	//{
+	//	ctsFunc = (CTSFunc)GetProcAddress(hRiched20, "CreateTextServices");
+
+	//	if (NULL == ctsFunc)
+	//		return E_NOINTERFACE;
+	//}
+
+	//if (FAILED(ctsFunc(NULL, this, &pUnk)))
+	//	return E_NOINTERFACE;
+#endif
+
 
 	if(*ppv )
 	{

@@ -823,15 +823,25 @@ IRichEditOle* RichEdit_GetOleInterface(ITextServices* pTextServices)
 
 int RichEdit_GetWindowTextLength(ITextServices* pTextServices)
 {
+#ifdef _WIN64
+	LRESULT lRes = 0;
+	pTextServices->TxSendMessage(EM_SETCHARFORMAT, 0, 0, &lRes);
+#else
 	HRESULT lRes = 0;
 	pTextServices->TxSendMessage(WM_GETTEXTLENGTH, 0, 0, &lRes);
+#endif
 	return (int)lRes;
 }
 
 int RichEdit_GetWindowText(ITextServices* pTextServices, LPTSTR lpszStringBuf, int nMaxCount)
 {
+#ifdef _WIN64
+	LRESULT lRes = 0;
+	pTextServices->TxSendMessage(EM_SETCHARFORMAT, 0, (LPARAM)lpszStringBuf, &lRes);
+#else
 	HRESULT lRes = 0;
 	pTextServices->TxSendMessage(WM_GETTEXT, nMaxCount, (LPARAM)lpszStringBuf, &lRes);
+#endif
 	return (int)lRes;
 }
 
@@ -870,8 +880,13 @@ int RichEdit_GetTextRange(ITextServices* pTextServices, CHARRANGE* lpchrg, tstri
 	tr.chrg =*lpchrg;
 	tr.lpstrText = pText;
 
+#ifdef _WIN64
+	LRESULT lRes = 0;
+	pTextServices->TxSendMessage(EM_SETCHARFORMAT, 0, (LPARAM)&tr, &lRes);
+#else
 	HRESULT lRes = 0;
 	pTextServices->TxSendMessage(EM_GETTEXTRANGE, 0, (LPARAM)&tr, &lRes);
+#endif
 
 	strText = pText;
 	delete []pText;
@@ -882,16 +897,26 @@ int RichEdit_GetTextRange(ITextServices* pTextServices, CHARRANGE* lpchrg, tstri
 DWORD RichEdit_GetDefaultCharFormat(ITextServices* pTextServices, CHARFORMAT& cf)
 {
 	cf.cbSize = sizeof(CHARFORMAT);
+#ifdef _WIN64
+	LRESULT lRes = 0;
+	pTextServices->TxSendMessage(EM_SETCHARFORMAT, 0, (LPARAM)&cf, &lRes);
+#else
 	HRESULT lRes = 0;
 	pTextServices->TxSendMessage(EM_GETCHARFORMAT, 0, (LPARAM)&cf, &lRes);
+#endif
 	return (DWORD)lRes;
 }
 
 BOOL RichEdit_SetDefaultCharFormat(ITextServices* pTextServices, CHARFORMAT& cf)
 {
 	cf.cbSize = sizeof(CHARFORMAT);
+#ifdef _WIN64
+	LRESULT lRes = 0;
+	pTextServices->TxSendMessage(EM_SETCHARFORMAT, 0, (LPARAM)&cf, &lRes);
+#else
 	HRESULT lRes = 0;
 	pTextServices->TxSendMessage(EM_SETCHARFORMAT, 0, (LPARAM)&cf, &lRes);
+#endif
 	return (BOOL)lRes;
 }
 
@@ -927,8 +952,13 @@ void RichEdit_GetSel(ITextServices* pTextServices, LONG& nStartChar, LONG& nEndC
 int RichEdit_SetSel(ITextServices* pTextServices, LONG nStartChar, LONG nEndChar)
 {
 	CHARRANGE cr = { nStartChar, nEndChar };
+#ifdef _WIN64
+	LRESULT lRes = 0;
+	pTextServices->TxSendMessage(EM_SETCHARFORMAT, 0, (LPARAM)&cr, &lRes);
+#else
 	HRESULT lRes = 0;
 	pTextServices->TxSendMessage(EM_EXSETSEL, 0, (LPARAM)&cr, &lRes);
+#endif
 	return (int)lRes;
 }
 
@@ -1037,8 +1067,13 @@ BOOL RichEdit_SetStartIndent(ITextServices* pTextServices, int nSize)
 	pf2.cbSize = sizeof(PARAFORMAT2);
 	pf2.dwMask = PFM_STARTINDENT;
 	pf2.dxStartIndent = nSize;
+#ifdef _WIN64
+	LRESULT lRes = 0;
+	pTextServices->TxSendMessage(EM_SETCHARFORMAT, 0, (LPARAM)&pf2, &lRes);
+#else
 	HRESULT lRes = 0;
 	pTextServices->TxSendMessage(EM_SETPARAFORMAT, 0, (LPARAM)&pf2, &lRes);
+#endif
 	return (BOOL)lRes;
 }
 

@@ -117,8 +117,10 @@
 
 #define zmalloc(len) malloc(len)
 #define zfree(p) free(p)
-typedef unsigned long lutime_t;       // define it ourselves since we don't include time.h
 
+//#ifdef _WIN64
+typedef unsigned long lutime_t;       // define it ourselves since we don't include time.h
+//#endif
 /*
 void*zmalloc(unsigned int len)
 { char*buf = new char[len+32];
